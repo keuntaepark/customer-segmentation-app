@@ -18,26 +18,27 @@ ipt = st.slider("Interpurchase Time (avg. gap days)", 0.0, 30.0, 5.0)
 imp = st.slider("Impulse Score (0 = deliberate, 1 = impulsive)", 0.0, 1.0, 0.5)
 
 if st.button("Predict Segment"):
-    # Assemble input
+    # Raw input
     input_df = pd.DataFrame([[rec, freq, mon, ipt, imp]],
                             columns=['Recency', 'Frequency', 'Monetary', 'InterpurchaseTime', 'ImpulseScore'])
 
     st.markdown("### 🔍 Raw Input")
     st.dataframe(input_df)
 
-    # Apply log1p to the 3 relevant features (used during training)
+    # Apply log1p (same as training)
     log_cols = ['Frequency', 'Monetary', 'InterpurchaseTime']
     input_df[log_cols] = np.log1p(input_df[log_cols])
 
-    # Apply scaling
+    # Scale
     input_scaled = scaler.transform(input_df)
 
     st.markdown("### ⚙️ Scaled Input")
     st.dataframe(pd.DataFrame(input_scaled, columns=input_df.columns))
 
-    # Prediction
+    # Predict
     pred = model.predict(input_scaled)[0]
 
+    # Cluster label interpretation
     ux_map = {
         0: "Flash deals, one-click buying",
         1: "Smart nudges, reminders",
