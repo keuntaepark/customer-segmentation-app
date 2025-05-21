@@ -16,11 +16,21 @@ mon = st.slider("Monetary (total spend, log-scaled)", 0, 10, 5)
 ipt = st.slider("Interpurchase Time (avg. gap days)", 0.0, 30.0, 5.0)
 imp = st.slider("Impulse Score (0 = deliberate, 1 = impulsive)", 0.0, 1.0, 0.5)
 
-# Submit button
+# Prediction section
 if st.button("Predict Segment"):
     input_df = pd.DataFrame([[rec, freq, mon, ipt, imp]],
                             columns=['Recency', 'Frequency', 'Monetary', 'InterpurchaseTime', 'ImpulseScore'])
+
+    # Show raw input for debugging
+    st.markdown("### 🔍 Raw Input")
+    st.dataframe(input_df)
+
     input_scaled = scaler.transform(input_df)
+
+    # Show scaled input for debugging
+    st.markdown("### ⚙️ Scaled Input")
+    st.dataframe(pd.DataFrame(input_scaled, columns=input_df.columns))
+
     pred = model.predict(input_scaled)[0]
 
     # UX suggestion map
@@ -32,5 +42,5 @@ if st.button("Predict Segment"):
         4: "Comeback offers, FOMO banners"
     }
 
-    st.subheader("Predicted Segment:")
-    st.write(f"Cluster {pred} — {ux_map[pred]}")
+    st.markdown("### 🧠 Predicted Segment")
+    st.success(f"**Cluster {pred} — {ux_map[pred]}**")
