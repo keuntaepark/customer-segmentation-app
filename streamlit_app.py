@@ -2,35 +2,35 @@ import streamlit as st
 import pandas as pd
 import pickle
 
-# Load trained model
+# Load model and scaler
 model = pickle.load(open('cluster_classifier.pkl', 'rb'))
 scaler = pickle.load(open('scaler.pkl', 'rb'))
 
 st.title("Customer Segmentation Predictor")
-
 st.markdown("Input behavioral metrics to predict customer segment.")
 
-# User input
+# Input sliders
 rec = st.slider("Recency (days since last purchase)", 0, 365, 90)
 freq = st.slider("Frequency (total transactions)", 0, 10, 2)
 mon = st.slider("Monetary (total spend, log-scaled)", 0, 10, 5)
 ipt = st.slider("Interpurchase Time (avg. gap days)", 0.0, 30.0, 5.0)
 imp = st.slider("Impulse Score (0 = deliberate, 1 = impulsive)", 0.0, 1.0, 0.5)
 
-# Predict
-input_df = pd.DataFrame([[rec, freq, mon, ipt, imp]],
-                        columns=['Recency', 'Frequency', 'Monetary', 'InterpurchaseTime', 'ImpulseScore'])
-input_scaled = scaler.transform(input_df)
-pred = model.predict(input_scaled)[0]
+# Submit button
+if st.button("Predict Segment"):
+    input_df = pd.DataFrame([[rec, freq, mon, ipt, imp]],
+                            columns=['Recency', 'Frequency', 'Monetary', 'InterpurchaseTime', 'ImpulseScore'])
+    input_scaled = scaler.transform(input_df)
+    pred = model.predict(input_scaled)[0]
 
-# UX suggestion map
-ux_map = {
-    0: "Flash deals, one-click buying",
-    1: "Smart nudges, reminders",
-    2: "Loyalty perks, personalization",
-    3: "Low-key reactivation",
-    4: "Comeback offers, FOMO banners"
-}
+    # UX suggestion map
+    ux_map = {
+        0: "Flash deals, one-click buying",
+        1: "Smart nudges, reminders",
+        2: "Loyalty perks, personalization",
+        3: "Low-key reactivation",
+        4: "Comeback offers, FOMO banners"
+    }
 
-st.subheader("Predicted Segment:")
-st.write(f"Cluster {pred} — {ux_map[pred]}")
+    st.subheader("Predicted Segment:")
+    st.write(f"Cluster {pred} — {ux_map[pred]}")
