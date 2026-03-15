@@ -12,10 +12,11 @@ jobs:
   vibesafe:
     name: Security Scan
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Run VibeSafe scan
         id: vibesafe
@@ -48,38 +49,61 @@ jobs:
             const low       = parseInt(process.env.VIBESAFE_LOW, 10);
             const total     = parseInt(process.env.VIBESAFE_TOTAL, 10);
             const blockReason = process.env.VIBESAFE_BLOCK_REASON || '';
-            const gradeEmoji = {A:'🟢',B:'🟡',C:'🟠',D:'🔴',F:'🔴'}[grade]||'⚪';
-            const certBadge = certified ? ' ✅ **Certified**' : '';
-            const certBlock = blockReason ? '\n> 인증 불가: ' + blockReason : '';
+
+            const gradeEmoji = {A: '🟢', B: '🟡', C: '🟠', D: '🔴', F: '🔴'}[grade] || '⚪';
+            const certBadge  = certified ? ' ✅ **Certified**' : '';
+            const certBlock  = blockReason ? `\n> 인증 불가: ${blockReason}` : '';
+
             let summary = '';
             if (critical > 0)    summary = `Critical 취약점 ${critical}개 발견 — 즉시 수정 필요`;
             else if (high > 0)   summary = `High 취약점 ${high}개 발견 — 머지 전 수정 권장`;
             else if (medium > 0) summary = `Medium 취약점 ${medium}개 발견`;
             else if (low > 0)    summary = `Low 취약점 ${low}개`;
             else                 summary = `취약점 미발견`;
+
             const body = [
-              `## 🔐 VibeSafe 보안 스캔 결과`,``,
+              `## 🔐 VibeSafe 보안 스캔 결과`,
+              ``,
               `${gradeEmoji} **${points}/100** (등급 ${grade})${certBadge}`,
-              certBlock,``,`> ${summary}`,``,
-              `| 심각도 | 건수 |`,`|--------|------|`,
-              `| 🔴 Critical | ${critical} |`,`| 🟠 High | ${high} |`,
-              `| 🟡 Medium | ${medium} |`,`| 🟢 Low | ${low} |`,``,
-              `도메인: \`${domain}\` · 총 ${total}건`,``,
+              certBlock,
+              ``,
+              `> ${summary}`,
+              ``,
+              `| 심각도 | 건수 |`,
+              `|--------|------|`,
+              `| 🔴 Critical | ${critical} |`,
+              `| 🟠 High     | ${high} |`,
+              `| 🟡 Medium   | ${medium} |`,
+              `| 🟢 Low      | ${low} |`,
+              ``,
+              `도메인: \`${domain}\` · 총 ${total}건`,
+              ``,
               `<sub>Powered by [VibeSafe](https://vibesafe.dev)</sub>`,
-            ].join('
-');
-            const {data:comments} = await github.rest.issues.listComments({
-              owner:context.repo.owner, repo:context.repo.repo, issue_number:context.issue.number
+            ].join('\n');
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
             });
+
             const existing = comments.find(c =>
-              c.user.login==='github-actions[bot]' && c.body.includes('VibeSafe 보안 스캔 결과')
+              c.user.login === 'github-actions[bot]' &&
+              c.body.includes('VibeSafe 보안 스캔 결과')
             );
+
             if (existing) {
               await github.rest.issues.updateComment({
-                owner:context.repo.owner, repo:context.repo.repo, comment_id:existing.id, body
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
               });
             } else {
               await github.rest.issues.createComment({
-                owner:context.repo.owner, repo:context.repo.repo, issue_number:context.issue.number, body
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
               });
             }
