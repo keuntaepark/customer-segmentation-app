@@ -50,8 +50,7 @@ jobs:
             const blockReason = process.env.VIBESAFE_BLOCK_REASON || '';
             const gradeEmoji = {A:'🟢',B:'🟡',C:'🟠',D:'🔴',F:'🔴'}[grade]||'⚪';
             const certBadge = certified ? ' ✅ **Certified**' : '';
-            const certBlock = blockReason ? `
-> 인증 불가: ${blockReason}` : '';
+            const certBlock = blockReason ? '\n> 인증 불가: ' + blockReason : '';
             let summary = '';
             if (critical > 0)    summary = `Critical 취약점 ${critical}개 발견 — 즉시 수정 필요`;
             else if (high > 0)   summary = `High 취약점 ${high}개 발견 — 머지 전 수정 권장`;
